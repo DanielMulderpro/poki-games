@@ -2,7 +2,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <script src="//game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
+    <script>
+// Poki SDK stub – omzeilt de sitelock voor lokaal/offline gebruik
+window.PokiSDK = {
+    init:                 function () { return Promise.resolve(); },
+    measure:              function () {},
+    setDebug:             function () {},
+    gameLoadingFinished:  function () { return Promise.resolve(); },
+    gameplayStart:        function () {},
+    gameplayStop:         function () {},
+    commercialBreak:      function () { return Promise.resolve(true); },
+    rewardedBreak:        function () { return Promise.resolve(true); },
+    customEvent:          function () {},
+    sendCustomEvent:      function () {},
+    setPlayerConsent:     function () {},
+    getPlayerConsent:     function () { return 'full'; },
+    togglePlayerConsent:  function () { return Promise.resolve(true); },
+    getLanguage:          function () { return 'en'; },
+    getURLParam:          function () { return null; },
+    isAdBlocked:          function () { return false; },
+    getLeaderboard:       function () { return Promise.resolve({}); },
+    submitScore:          function () { return Promise.resolve(); }
+};
+</script>
 
     <meta http-equiv="content-type" content="text/html; charset=UTF8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
