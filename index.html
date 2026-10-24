@@ -1,1 +1,413 @@
-this is not the main site lol
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Poki Hacked — Arcade</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+  }
+
+  html, body {
+    height: 100%;
+    background: radial-gradient(circle at 20% 20%, #1b2a4a, #0a0f1c 60%);
+    color: #fff;
+    overflow: hidden;
+  }
+
+  /* ---------- MENU VIEW ---------- */
+  #menu {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2.5rem;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, #ff3d81, #ffd166, #00e0ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 40px rgba(255, 61, 129, 0.35);
+  }
+
+  .subtitle {
+    margin-top: -1.5rem;
+    font-size: 1rem;
+    color: #8ba0c4;
+    letter-spacing: 1px;
+  }
+
+  .buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: center;
+  }
+
+  .game-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    width: 260px;
+    height: 150px;
+    border: none;
+    border-radius: 22px;
+    cursor: pointer;
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    transition: transform 0.15s ease, box-shadow 0.25s ease, filter 0.25s ease;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+  }
+
+  .game-btn .emoji { font-size: 2.2rem; line-height: 1; }
+  .game-btn .tag {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    opacity: 0.8;
+    text-transform: none;
+  }
+
+  .btn-drive {
+    background: linear-gradient(135deg, #ff512f, #dd2476);
+    box-shadow: 0 12px 30px rgba(221, 36, 118, 0.45);
+  }
+
+  .btn-plonky {
+    background: linear-gradient(135deg, #00c6ff, #0072ff);
+    box-shadow: 0 12px 30px rgba(0, 114, 255, 0.45);
+  }
+
+  .game-btn:hover {
+    transform: translateY(-8px) scale(1.04);
+    filter: brightness(1.12);
+  }
+
+  .btn-drive:hover { box-shadow: 0 20px 45px rgba(221, 36, 118, 0.7); }
+  .btn-plonky:hover { box-shadow: 0 20px 45px rgba(0, 114, 255, 0.7); }
+
+  .game-btn:active { transform: translateY(-2px) scale(0.98); }
+
+  footer {
+    font-size: 0.75rem;
+    color: #4c5c7a;
+    letter-spacing: 1px;
+  }
+
+  /* ---------- GAME VIEW ---------- */
+  #gameView {
+    display: none;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    background: #000;
+  }
+
+  #gameView.active {
+    display: flex;
+  }
+
+  /* Top bar inside the game view */
+  .game-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 1rem;
+    background: #0f1729;
+    border-bottom: 1px solid #1e2b45;
+    flex-shrink: 0;
+    z-index: 5;
+  }
+
+  /* Hidden entirely while in fullscreen */
+  .game-bar.hidden {
+    display: none;
+  }
+
+  .bar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 1.1rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    color: #fff;
+    transition: transform 0.12s ease, filter 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .bar-btn:active { transform: scale(0.96); }
+  .bar-btn:hover { filter: brightness(1.15); }
+
+  .back-btn {
+    background: #2a3550;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  }
+
+  .fullscreen-btn {
+    background: linear-gradient(135deg, #00c6ff, #0072ff);
+    box-shadow: 0 4px 14px rgba(0, 114, 255, 0.4);
+    margin-left: auto; /* push to the right */
+  }
+
+  .game-title {
+    font-size: 0.9rem;
+    color: #8ba0c4;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .frame-wrap {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    background: #000;
+  }
+
+  #gameFrame {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #000;
+  }
+
+  /* Fullscreen adjustments (when #gameView goes fullscreen) */
+  #gameView:fullscreen {
+    width: 100vw;
+    height: 100vh;
+  }
+
+  /* Small fading hint shown only in fullscreen */
+  .fs-hint {
+    position: absolute;
+    top: 1.2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.55rem 1.1rem;
+    border-radius: 999px;
+    background: rgba(10, 15, 28, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #d6e2f5;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    z-index: 10;
+  }
+
+  .fs-hint.show {
+    opacity: 1;
+  }
+
+  @media (max-width: 620px) {
+    .game-btn {
+      width: 100%;
+      max-width: 320px;
+      height: 130px;
+    }
+    .buttons { width: 100%; }
+    .game-title { display: none; }
+    .bar-btn { padding: 0.5rem 0.8rem; font-size: 0.85rem; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ================= MENU ================= -->
+  <section id="menu">
+    <h1>Poki Hacked 🚀</h1>
+    <p class="subtitle">pick your game — it opens right here</p>
+
+    <div class="buttons">
+      <button class="game-btn btn-drive" data-game="drive">
+        <span class="emoji">🚗</span>
+        Play Drive Mad
+        <span class="tag">hacked edition lol</span>
+      </button>
+
+      <button class="game-btn btn-plonky" data-game="plonky">
+        <span class="emoji">🧩</span>
+        Play Plonky
+        <span class="tag">hacked edition lol</span>
+      </button>
+    </div>
+
+    <footer>plays inside this page · not affiliated with Poki</footer>
+  </section>
+
+  <!-- ================= GAME VIEW ================= -->
+  <section id="gameView">
+    <div id="gameBar" class="game-bar">
+      <button id="backBtn" class="bar-btn back-btn" type="button">
+        ← Back
+      </button>
+
+      <span id="gameTitle" class="game-title">Drive Mad</span>
+
+      <button id="fullscreenBtn" class="bar-btn fullscreen-btn" type="button">
+        ⛶ Fullscreen
+      </button>
+    </div>
+
+    <div class="frame-wrap">
+      <iframe
+        id="gameFrame"
+        title="Game frame"
+        allow="fullscreen; autoplay; gamepad"
+        allowfullscreen
+        referrerpolicy="no-referrer"
+        src="about:blank"
+      ></iframe>
+
+      <div id="fsHint" class="fs-hint">Press Esc to exit fullscreen</div>
+    </div>
+  </section>
+
+<script>
+  (function () {
+    "use strict";
+
+    // ---- Game URLs (exactly as you provided) ----
+    const GAMES = {
+      drive: {
+        title: "Drive Mad",
+        url: "https://danielmulderpro.github.io/poki-games/drivemad/index.html"
+      },
+      plonky: {
+        title: "Plonky",
+        url: "https://danielmulderpro.github.io/poki-games/pl%3Bonkuy/index.html"
+      }
+    };
+
+    // ---- DOM refs ----
+    const menu = document.getElementById("menu");
+    const gameView = document.getElementById("gameView");
+    const gameBar = document.getElementById("gameBar");
+    const gameFrame = document.getElementById("gameFrame");
+    const gameTitle = document.getElementById("gameTitle");
+    const backBtn = document.getElementById("backBtn");
+    const fullscreenBtn = document.getElementById("fullscreenBtn");
+    const fsHint = document.getElementById("fsHint");
+
+    let hintTimer = null;
+
+    // ---- Open a game inside the iframe ----
+    function openGame(key) {
+      const game = GAMES[key];
+      if (!game) return;
+
+      gameTitle.textContent = game.title;
+      gameFrame.src = game.url;
+
+      menu.style.display = "none";
+      gameView.classList.add("active");
+
+      // Ensure the bar is visible when a game starts
+      gameBar.classList.remove("hidden");
+    }
+
+    // ---- Back to menu ----
+    function goBack() {
+      // If we are in fullscreen, exit it first
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
+
+      // Stop the game (stops audio / frees resources)
+      gameFrame.src = "about:blank";
+
+      gameView.classList.remove("active");
+      menu.style.display = "flex";
+
+      // Restore the bar for next time
+      gameBar.classList.remove("hidden");
+      hideHint();
+    }
+
+    // ---- Fullscreen toggle ----
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        // Request fullscreen on the game view container.
+        // The whole top bar (Back + Fullscreen) is hidden by CSS/JS
+        // while fullscreen is active, so only the game is visible.
+        gameView.requestFullscreen().catch((err) => {
+          console.warn("Fullscreen request failed:", err);
+        });
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    // ---- Show the "Press Esc" hint briefly ----
+    function showHint() {
+      fsHint.classList.add("show");
+      clearTimeout(hintTimer);
+      hintTimer = setTimeout(() => {
+        fsHint.classList.remove("show");
+      }, 3000);
+    }
+
+    function hideHint() {
+      clearTimeout(hintTimer);
+      fsHint.classList.remove("show");
+    }
+
+    // ---- Hide / show the entire top bar on fullscreen change ----
+    function handleFullscreenChange() {
+      if (document.fullscreenElement) {
+        // FULLSCREEN: hide the whole bar (Back button included)
+        gameBar.classList.add("hidden");
+        showHint();
+      } else {
+        // NOT FULLSCREEN: bring the bar back
+        gameBar.classList.remove("hidden");
+        hideHint();
+      }
+    }
+
+    // ---- Wire up menu buttons ----
+    document.querySelectorAll(".game-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const key = btn.getAttribute("data-game");
+        openGame(key);
+      });
+    });
+
+    // ---- Wire up game-view buttons ----
+    backBtn.addEventListener("click", goBack);
+    fullscreenBtn.addEventListener("click", toggleFullscreen);
+
+    // ---- Listen for fullscreen changes (incl. Esc key) ----
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    // Safari / older browsers
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    document.addEventListener("mozfullscreenchange", handleFullscreenChange);
+    document.addEventListener("MSFullscreenChange", handleFullscreenChange);
+  })();
+</script>
+</body>
+</html>
