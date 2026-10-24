@@ -136,6 +136,11 @@
     z-index: 5;
   }
 
+  /* Hidden entirely while in fullscreen */
+  .game-bar.hidden {
+    display: none;
+  }
+
   .bar-btn {
     display: inline-flex;
     align-items: center;
@@ -164,11 +169,6 @@
     background: linear-gradient(135deg, #00c6ff, #0072ff);
     box-shadow: 0 4px 14px rgba(0, 114, 255, 0.4);
     margin-left: auto; /* push to the right */
-  }
-
-  /* Hides fullscreen button while in fullscreen */
-  .fullscreen-btn.hidden {
-    display: none;
   }
 
   .game-title {
@@ -200,8 +200,27 @@
     height: 100vh;
   }
 
-  #gameView:fullscreen .game-bar {
-    /* keep the bar, but fullscreen button is hidden via JS */
+  /* Small fading hint shown only in fullscreen */
+  .fs-hint {
+    position: absolute;
+    top: 1.2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.55rem 1.1rem;
+    border-radius: 999px;
+    background: rgba(10, 15, 28, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #d6e2f5;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    z-index: 10;
+  }
+
+  .fs-hint.show {
+    opacity: 1;
   }
 
   @media (max-width: 620px) {
@@ -242,7 +261,7 @@
 
   <!-- ================= GAME VIEW ================= -->
   <section id="gameView">
-    <div class="game-bar">
+    <div id="gameBar" class="game-bar">
       <button id="backBtn" class="bar-btn back-btn" type="button">
         ← Back
       </button>
@@ -263,6 +282,8 @@
         referrerpolicy="no-referrer"
         src="about:blank"
       ></iframe>
+
+      <div id="fsHint" class="fs-hint">Press Esc to exit fullscreen</div>
     </div>
   </section>
 
@@ -285,10 +306,14 @@
     // ---- DOM refs ----
     const menu = document.getElementById("menu");
     const gameView = document.getElementById("gameView");
+    const gameBar = document.getElementById("gameBar");
     const gameFrame = document.getElementById("gameFrame");
     const gameTitle = document.getElementById("gameTitle");
     const backBtn = document.getElementById("backBtn");
     const fullscreenBtn = document.getElementById("fullscreenBtn");
+    const fsHint = document.getElementById("fsHint");
+
+    let hintTimer = null;
 
     // ---- Open a game inside the iframe ----
     function openGame(key) {
@@ -301,8 +326,8 @@
       menu.style.display = "none";
       gameView.classList.add("active");
 
-      // Make sure fullscreen button is visible when entering a game
-      fullscreenBtn.classList.remove("hidden");
+      // Ensure the bar is visible when a game starts
+      gameBar.classList.remove("hidden");
     }
 
     // ---- Back to menu ----
@@ -318,15 +343,17 @@
       gameView.classList.remove("active");
       menu.style.display = "flex";
 
-      // Reset fullscreen button visibility
-      fullscreenBtn.classList.remove("hidden");
+      // Restore the bar for next time
+      gameBar.classList.remove("hidden");
+      hideHint();
     }
 
     // ---- Fullscreen toggle ----
     function toggleFullscreen() {
       if (!document.fullscreenElement) {
-        // Request fullscreen on the game view container
-        // so the back button stays available.
+        // Request fullscreen on the game view container.
+        // The whole top bar (Back + Fullscreen) is hidden by CSS/JS
+        // while fullscreen is active, so only the game is visible.
         gameView.requestFullscreen().catch((err) => {
           console.warn("Fullscreen request failed:", err);
         });
@@ -335,14 +362,30 @@
       }
     }
 
-    // ---- Hide fullscreen button while in fullscreen ----
+    // ---- Show the "Press Esc" hint briefly ----
+    function showHint() {
+      fsHint.classList.add("show");
+      clearTimeout(hintTimer);
+      hintTimer = setTimeout(() => {
+        fsHint.classList.remove("show");
+      }, 3000);
+    }
+
+    function hideHint() {
+      clearTimeout(hintTimer);
+      fsHint.classList.remove("show");
+    }
+
+    // ---- Hide / show the entire top bar on fullscreen change ----
     function handleFullscreenChange() {
       if (document.fullscreenElement) {
-        // We're fullscreen -> hide the fullscreen button
-        fullscreenBtn.classList.add("hidden");
+        // FULLSCREEN: hide the whole bar (Back button included)
+        gameBar.classList.add("hidden");
+        showHint();
       } else {
-        // Not fullscreen -> show it again
-        fullscreenBtn.classList.remove("hidden");
+        // NOT FULLSCREEN: bring the bar back
+        gameBar.classList.remove("hidden");
+        hideHint();
       }
     }
 
@@ -364,9 +407,6 @@
     document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
     document.addEventListener("mozfullscreenchange", handleFullscreenChange);
     document.addEventListener("MSFullscreenChange", handleFullscreenChange);
-
-    // Optional: pressing Esc inside iframe sometimes doesn't bubble, but
-    // the browser exits fullscreen anyway and the event still fires.
   })();
 </script>
 </body>
